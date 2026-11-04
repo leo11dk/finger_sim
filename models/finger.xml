@@ -1,0 +1,92 @@
+<!-- One physical motor; zero-gain channels expose native parameter/action sliders. -->
+<mujoco model="tendon_driven_finger">
+  <compiler angle="degree" />
+  <default>
+    <site size="0.0015" rgba="0.15 0.15 0.15 1" />
+    <joint type="hinge" axis="0 1 0" limited="true" range="0 75" solreflimit="0.004 1" damping="0.002" armature="0.00001" />
+  </default>
+  <worldbody>
+    <body name="link_1" pos="0 0 0.15">
+      <geom name="link_1_geom" type="capsule" fromto="0 0 0 0.05 0 0" size="0.006" mass="0.025" rgba="0.3 0.55 0.85 1" />
+      <geom name="guide_1" type="cylinder" pos="0.05 0 0" euler="90 0 0" size="0.014 0.008" mass="0" contype="0" conaffinity="0" rgba="0.3 0.3 0.35 0.6" />
+      <site name="spring_1_anchor" pos="0.038 0 0.014" />
+      <body name="link_2" pos="0.05 0 0">
+        <joint name="joint_1" />
+        <geom name="link_2_geom" type="capsule" fromto="0 0 0 0.035 0 0" size="0.006" mass="0.018" rgba="0.3 0.75 0.55 1" />
+        <geom name="guide_2" type="cylinder" pos="0.035 0 0" euler="90 0 0" size="0.014 0.008" mass="0" contype="0" conaffinity="0" rgba="0.3 0.3 0.35 0.6" />
+        <site name="spring_1_tip" pos="0.012 0 0.014" />
+        <site name="spring_2_anchor" pos="0.023 0 0.014" />
+        <body name="link_3" pos="0.035 0 0">
+          <joint name="joint_2" />
+          <geom name="link_3_geom" type="capsule" fromto="0 0 0 0.025 0 0" size="0.006" mass="0.012" rgba="0.95 0.65 0.25 1" />
+          <site name="spring_2_tip" pos="0.012 0 0.014" />
+          <site name="flexor_2_after" pos="0.012 0 -0.012" />
+          <site name="flexor_tip" pos="0.025 0 -0.012" />
+        </body>
+        <site name="flexor_1_after" pos="0.012 0 -0.012" />
+        <site name="flexor_2_before" pos="0.023 0 -0.012" />
+      </body>
+      <site name="flexor_root" pos="-0.02 0 -0.012" />
+      <site name="flexor_1_before" pos="0.038 0 -0.012" />
+      <body name="reel" pos="-0.02 0 -0.002">
+        <joint name="reel_joint" type="hinge" axis="0 1 0" range="0 300" damping="0.0001" armature="0.000002" />
+        <geom type="cylinder" euler="90 0 0" size=".01 .004" mass=".01" contype="0" conaffinity="0" name="reel_core" rgba=".22 .25 .3 1" />
+        <geom name="reel_rotation_marker" type="capsule" fromto="0 -.0065 0 .009 -.0065 0" size=".001" mass="0" contype="0" conaffinity="0" rgba="1 .75 .15 1" />
+        <geom name="reel_groove" type="cylinder" pos="0 0 0" euler="90 0 0" size=".01 .003" mass="0" contype="0" conaffinity="0" rgba=".7 .72 .76 1" />
+        <geom name="reel_flange_left" type="cylinder" pos="0 -0.005 0" euler="90 0 0" size=".012 .001" mass="0" contype="0" conaffinity="0" rgba=".3 .35 .42 1" />
+        <geom name="reel_flange_right" type="cylinder" pos="0 0.005 0" euler="90 0 0" size=".012 .001" mass="0" contype="0" conaffinity="0" rgba=".3 .35 .42 1" />
+      </body>
+      <geom name="motor_housing" type="box" pos="-.02 .024 -.002" size=".014 .007 .014" mass="0" contype="0" conaffinity="0" rgba=".16 .2 .26 1" />
+      <geom name="reel_shaft" type="cylinder" pos="-.02 .01 -.002" euler="90 0 0" size=".003 .015" mass="0" contype="0" conaffinity="0" rgba=".6 .6 .65 1" />
+    </body>
+  </worldbody>
+  <tendon>
+    <spatial name="flexor" width="0.001" rgba="0.9 0.15 0.12 1">
+      <site site="flexor_root" />
+      <site site="flexor_1_before" />
+      <geom geom="guide_1" />
+      <site site="flexor_1_after" />
+      <site site="flexor_2_before" />
+      <geom geom="guide_2" />
+      <site site="flexor_2_after" />
+      <site site="flexor_tip" />
+    </spatial>
+    <spatial name="return_spring_1" width="0.0015" rgba="0.15 0.45 1 0" stiffness="1000" damping="1" springlength="0 0.024">
+      <site site="spring_1_anchor" />
+      <site site="spring_1_tip" />
+    </spatial>
+    <spatial name="return_spring_2" width="0.0015" rgba="0.15 0.45 1 0" stiffness="700" damping="1" springlength="0 0.024">
+      <site site="spring_2_anchor" />
+      <site site="spring_2_tip" />
+    </spatial>
+    <fixed name="reel_take_up">
+      <joint joint="reel_joint" coef=".01" />
+    </fixed>
+  </tendon>
+  <actuator>
+    <motor name="reel_torque_Nm" joint="reel_joint" gear="1" ctrllimited="true" ctrlrange="0 .06" forcelimited="true" forcerange="0 .06" />
+    <general name="spring_1_N_per_m" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="100 2000" />
+    <general name="spring_2_N_per_m" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="100 2000" />
+    <general name="pulley_1_radius_mm" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="12 16" />
+    <general name="pulley_2_radius_mm" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="12 16" />
+    <general name="obstacle_on" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="0 1" />
+    <general name="obstacle_x_mm" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="40 100" />
+    <general name="obstacle_z_mm" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="80 145" />
+    <general name="obstacle_r_mm" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="4 16" />
+    <general name="trial_mode" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="0 3" />
+    <general name="run_trial" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="0 1" />
+    <general name="trial_torque_Nm" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="0.005 0.06" />
+    <general name="trial_duration_s" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="2 8" />
+    <general name="search_trials" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="4 100" />
+    <general name="target_j1_deg" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="0 75" />
+    <general name="target_j2_deg" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="0 75" />
+    <general name="apply_best" joint="reel_joint" gear="0" gainprm="0" biasprm="0 0 0" ctrllimited="true" ctrlrange="0 1" />
+  </actuator>
+  <equality>
+    <tendon name="reel_coupling" tendon1="flexor" tendon2="reel_take_up" polycoef="0 -1 0 0 0" solref=".004 1" solimp=".99 .999 .001" />
+  </equality>
+  <contact>
+    <exclude body1="link_1" body2="link_2" />
+    <exclude body1="link_2" body2="link_3" />
+  </contact>
+</mujoco>
